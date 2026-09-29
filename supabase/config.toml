@@ -1,0 +1,4 @@
+project_id = "ishikeit-db"
+
+[experimental.pgdelta]
+enabled = true
