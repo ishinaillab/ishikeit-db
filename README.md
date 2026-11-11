@@ -28,3 +28,10 @@ Production Supabase `ishikeit-db` contains app-owned Meta messaging migrations a
 The final index migration was verified applied and its two expected btree indexes exist; the Supabase performance advisor no longer reports those two unindexed foreign keys. All customer data and consent status were preserved, and **no production migration was replayed by this repository reconciliation**.
 
 **Source-history gap recovered:** The original `20261025105859_restrict_future_public_client_privileges_postgres` SQL was read verbatim from the live, read-only `supabase_migrations.schema_migrations.statements` record. It has now been restored to this repository alongside the six exact Meta migrations. No database DDL or migration replay was performed by this source-only reconciliation. Before any future `supabase db push`, independently verify project identity, local/remote migration versions and the proposed changes; do not run blind resets or migration repairs.
+
+
+## Tenancy and administrator migration history reconciliation — 2026-11-11
+
+The nine migrations from `20261102014946` through `20261102105835` were **already applied** in production Supabase using its official migration mechanism. On November 11, a read-only inspection of `supabase_migrations.schema_migrations.statements[1]` confirmed that each applied statement matches the corresponding `ishinaillab/ishikeit` application SQL **exactly, byte-for-byte** (all nine lengths and full contents match). They cover verified workspace connections, connection intents, tenant event provenance, session binding, private browser OTP/MFA session storage, email encryption, approved initial owner bootstrap, platform administrator provisioning and workspace-member invitations.
+
+These files are a source-history mirror, **not unapplied migrations**: do not re-run them, repair migration history, reset the project, or re-invite the first owner. Always compare `supabase migration list` against the linked project and review a dry-run diff before future schema changes. The application deployment and customer messaging must remain unchanged by this repository-only checkpoint.
