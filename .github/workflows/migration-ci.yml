@@ -1,0 +1,60 @@
+name: Ishikeit DB — migration CI (offline only)
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# This is a NON-DEPLOYING validation workflow. Do not add remote DB or
+# provider credentials here. Real production migrations require separately
+# reviewed app/DB commits, an enforced release lease, and a protected operator.
+permissions:
+  contents: read
+
+concurrency:
+  group: ishikeit-db-schema-ci-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  migration-ci:
+    name: migration-ci
+    if: github.event_name != 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout exact review commit
+        uses: actions/checkout@v7
+      - name: Set up Node.js runtime for migration integrity checks
+        uses: actions/setup-node@v7
+        with:
+          node-version: '24'
+          package-manager-cache: false
+      - name: Verify immutable migration naming, unique history and Priority 3 prerequisites
+        run: |
+          node --test scripts/test-verify-migration-layout.mjs
+          node scripts/verify-migration-layout.mjs
+      - name: Verify this job cannot silently skip pull requests or touch remote Supabase
+        run: |
+          node --test scripts/test-verify-migration-ci-workflow.mjs
+          node scripts/verify-migration-ci-workflow.mjs
+      - name: Install current stable Supabase CLI (no production credentials)
+        uses: supabase/setup-cli@v3
+        with:
+          version: '^3'
+      - name: Verify local CLI and initialize disposable local Supabase only
+        run: |
+          supabase --version
+          supabase db start
+      - name: Rebuild disposable local database from versioned migrations (NO remote target)
+        run: supabase db reset --no-seed
+      - name: Lint disposable local public PostgreSQL schema and fail on errors
+        run: supabase db lint --fail-on error --schema public
+      - name: Delete only this runner's local Supabase containers and volumes
+        if: always()
+        run: supabase stop --no-backup
+
+# IMPORTANT: A CI workflow file alone is not a required check. The GitHub
+# repository administrator must separately enforce this job as a mandatory
+# branch rule, with PR review and no bypass. Production migration writer and
+# cross-repository release lease are never authorized by this workflow.
