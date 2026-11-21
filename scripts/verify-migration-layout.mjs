@@ -10,7 +10,8 @@ export const priority3MigrationVersions=Object.freeze([
   "20261115013500",
   "20261115021500",
   "20261115040000",
-  "20261115040500"
+  "20261115040500",
+  "20261118222000"
 ]);
 export function verifyMigrationNames(names,required=priority3MigrationVersions){
   if(!Array.isArray(names)||names.length===0)throw Error("No versioned SQL migrations found");

@@ -7,15 +7,17 @@ const names=[
   "20261115013500_provider_account_capability_app_scope.sql",
   "20261115021500_priority3_release_ownership_fence.sql",
   "20261115040000_priority3_active_disconnect_quarantine.sql",
-  "20261115040500_priority3_tenant_send_generation_fence.sql"
+  "20261115040500_priority3_tenant_send_generation_fence.sql",
+  "20261118222000_priority3_native_outbox_write_fence.sql"
 ];
 test("accepts exact ordered unique Priority 3 migration source list",()=>{
   assert.deepEqual(priority3MigrationVersions,[
-    "20261115013500","20261115021500","20261115040000","20261115040500"
+    "20261115013500","20261115021500","20261115040000","20261115040500",
+    "20261118222000"
   ]);
   assert.deepEqual(verifyMigrationNames(names),{
-    count:5,first:"20260930005600_foundation.sql",
-    last:"20261115040500_priority3_tenant_send_generation_fence.sql"
+    count:6,first:"20260930005600_foundation.sql",
+    last:"20261118222000_priority3_native_outbox_write_fence.sql"
   });
 });
 test("rejects missing protected migration and duplicate version history",()=>{
